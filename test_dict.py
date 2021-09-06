@@ -6,8 +6,8 @@ strlist=[str1,str2,str3]
 """print(str1.find("-1.7V"))
 print(str1[:str1.find("-1.7V")])
 print(str1[str1.find("-1.7V")+1:len(str1)])"""
-dict2={}
-dict1={"1.7V":0,
+dict_all_values_in_a_file={}
+dict_unit_keys={"1.7V":0,
        "1.7W":0,
        "3.0V":0,
        "3.0W":0,
@@ -18,14 +18,13 @@ dict1={"1.7V":0,
 for str_i in strlist:
 
        list1=(str_i[str_i.find("-")+1:len(str_i)]).split(";")
-       dict2_key=str_i[:str_i.find("-")]
+       dict_all_values_in_a_file_key=str_i[:str_i.find("-")]
        """print(list1)"""
-
+       print(dict_all_values_in_a_file_key)
        counter=0
-       for i in dict1.keys():
+       for i in dict_unit_keys.keys():
            """dict1[i]=list1[counter]"""
-           dict1.update({i: list1[counter]})
+           dict_unit_keys.update({i: list1[counter]})
            counter+=1
-
-       dict2.update({dict2_key:dict1.copy()})
-       print(dict2[dict2_key])
+           dict_all_values_in_a_file.update({dict_all_values_in_a_file_key:dict_unit_keys.copy()})
+print(dict_all_values_in_a_file)

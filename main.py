@@ -15,56 +15,84 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-prevfiledate = datetime.now()
-prevdelta=0
-print(prevfiledate)
 arrfiles = find('*.rocx', '.')
 print(arrfiles)
+
+
+def struct_first_line(m_line_count,m_line):
+    if m_line_count == 0:
+        m_newline = m_line.strip("\n") + ','
+        m_newline = m_newline.replace('Сохранено: ', 'Дата,')
+        m_newline = m_newline.replace(' ', ',')
+        m_newline = m_newline.replace(';', ',')
+        m_newline = m_newline.replace('-', ',')
+        m_newline = m_newline.replace(':', ',')
+        m_newlinelist = m_newline.split(sep=',')
+        print(m_newlinelist)
+
+        curentfiledate = datetime(year=int(m_newlinelist[6]), month=int(m_newlinelist[5]), day=int(m_newlinelist[4]),
+                                  hour=int(m_newlinelist[1]), minute=int(m_newlinelist[2]), second=int(m_newlinelist[3]))
+        del m_newlinelist[-6:]
+        m_newlinelist[1] = str(curentfiledate)
+        m_newlinelist += ['dt']
+        prevfiledate = datetime.now()
+        prevdelta = 0
+        print(prevfiledate)
+        if file_counter == 0:
+            m_newlinelist += ['0']
+            prevfiledate = curentfiledate
+        else:
+            delta = int((curentfiledate - prevfiledate).total_seconds())
+            m_newlinelist += [str(delta + prevdelta)]
+            prevfiledate = curentfiledate
+            prevdelta += delta
+        newlinestr = ','.join(m_newlinelist) + ','
+        print(newlinestr)
+        return newlinestr
+    else:
+        dict_all_values_in_a_file_key = m_line[:m_line.find("-")]
+        print(dict_all_values_in_a_file_key)
+        m_newline = m_line.strip("\n") + ','
+        m_newline = m_newline.replace(';', ',')
+        m_newline = m_newline.replace('W', '')
+        m_newline = m_newline.replace('V', '')
+        m_newline = m_newline.replace('°C', '')
+        list1 = (m_newline[m_newline.find("-") + 1:len(m_newline)]).split(",")
+        # print("list1"+str(list1))
+        m_newline = m_newline.replace('-', ',')
+        # print(m_newline)
+        counter = 0
+        for i in dict_unit_keys.keys():
+            """dict1[i]=list1[counter]"""
+            dict_unit_keys.update({i: list1[counter]})
+            counter += 1
+        dict_all_values_in_a_file.update({dict_all_values_in_a_file_key: dict_unit_keys.copy()})
+        return m_newline
+
+dict_all_values_in_a_file={}
+dict_unit_keys={"1.7V":0,
+       "1.7W":0,
+       "3.0V":0,
+       "3.0W":0,
+       "3.8V":0,
+       "3.8W":0,
+       "T1°C":0,
+       "T2°C":0}
 
 try:
     with open(csvfilename, mode='w', encoding="utf-8") as writefile:
         file_counter=0
         for each in arrfiles:
-
             try:
                 with open(each, mode='r', encoding="utf-8") as readfile:
+
                     line_count=0
                     for line in readfile:
-                        if line_count==0:
-                            newline = line.strip("\n") + ','
-                            newline = newline.replace('Сохранено: ', 'Дата,')
-                            newline = newline.replace(' ', ',')
-                            newline = newline.replace(';', ',')
-                            newline = newline.replace('-', ',')
-                            newline = newline.replace(':', ',')
-                            newlinelist= newline.split(sep=',')
-                            print(newlinelist)
-                            curentfiledate=datetime(year=int(newlinelist[6]),month=int(newlinelist[5]),day=int(newlinelist[4]),hour=int(newlinelist[1]),minute=int(newlinelist[2]),second=int(newlinelist[3]))
-                            del newlinelist[-6:]
-                            newlinelist[1]=str(curentfiledate)
-                            newlinelist+=['dt']
-                            if file_counter==0:
-                                newlinelist+=['0']
-                                prevfiledate=curentfiledate
-                            else:
-                                delta=int((curentfiledate-prevfiledate).total_seconds())
-                                newlinelist += [str(delta+prevdelta)]
-                                prevfiledate=curentfiledate
-                                prevdelta+=delta
-                            newlinestr=','.join(newlinelist)+','
-                            print(newlinestr)
-                            writefile.write(newlinestr)
-                            line_count+=1
-                        else:
-                            newline = line.strip("\n") + ','
-                            newline = newline.replace('-', ',')
-                            newline = newline.replace(';', ',')
-                            newline = newline.replace('W', '')
-                            newline = newline.replace('V', '')
-                            newline = newline.replace('°C', '')
-                            writefile.write(newline)
-                            line_count += 1
-                        file_counter += 1
+                        writefile.write(struct_first_line(line_count,line))
+                        line_count+=1
+                        # print(line_count)
+                    print(dict_all_values_in_a_file)
+                    file_counter += 1 #ERROR?
                     writefile.write('\n')
             except IOError:
                 print("'['1']'An IOError has occurred!")
