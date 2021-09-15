@@ -29,17 +29,17 @@ def get_file_time(m_line):
     m_newlinelist = m_newline.split(sep=',')
     curentfiledate = datetime(year=int(m_newlinelist[6]), month=int(m_newlinelist[5]), day=int(m_newlinelist[4]),
                               hour=int(m_newlinelist[1]), minute=int(m_newlinelist[2]), second=int(m_newlinelist[3]))
-    print("curentfiledate")
+    # print("curentfiledate")
     # print(type(curentfiledate))
-    print(curentfiledate)
+    # print(curentfiledate)
     return curentfiledate
 
-def struct_first_line(m_line_count,m_line,m_timedelta):
+def struct_line(m_line_count, m_line, m_timedelta):
     if m_line_count == 0:
         m_firstline = "Время,"+str(m_timedelta)+","
 
-        print("4+++")
-        print(m_firstline)
+        # print("4+++")
+        # print(m_firstline)
         return m_firstline
     else:
         dict_all_values_in_a_file_key = m_line[:m_line.find("-")]
@@ -55,7 +55,6 @@ def struct_first_line(m_line_count,m_line,m_timedelta):
         # print(m_newline)
         counter = 0
         for i in dict_unit_keys.keys():
-            """dict1[i]=list1[counter]"""
             dict_unit_keys.update({i: list1[counter]})
             counter += 1
         dict_all_values_in_a_file.update({dict_all_values_in_a_file_key: dict_unit_keys.copy()})
@@ -63,8 +62,7 @@ def struct_first_line(m_line_count,m_line,m_timedelta):
         return m_newline
 
 def diff_dates(date1, date2):
-    # date1 = datetime.strptime(d1, "%Y-%m-%d ")
-    # date2 = datetime.strptime(d2, "%Y-%m-%d")
+    # --->>> crutch
     if date1.year == 1 or date2.year == 1:
         return 0
     else:
@@ -79,7 +77,7 @@ dict_unit_keys={"1.7V":0,
        "3.8W":0,
        "T1°C":0,
        "T2°C":0}
-
+#previousfiledate --->>> crutch
 previousfiledate = datetime(year=int(1), month=int(1), day=int(1),
                             hour=int(0), minute=int(0), second=int(0))
 print(previousfiledate)
@@ -90,16 +88,15 @@ try:
         for each in arrfiles:
             try:
                 with open(each, mode='r', encoding="utf-8") as readfile:
-                    list_readfile=[]
                     list_readfile=list(readfile)
                     currentfiledate=get_file_time(list_readfile[0])
                     timedelta+=diff_dates(previousfiledate,currentfiledate)
-                    print("timedelta")
-                    print(type(timedelta))
-                    print(timedelta)
+                    # print("timedelta")
+                    # print(type(timedelta))
+                    # print(timedelta)
                     line_count=0
                     for line in list_readfile:
-                        writefile.write(struct_first_line(line_count,line,timedelta))
+                        writefile.write(struct_line(line_count, line, timedelta))
                         line_count+=1
                         # print(line_count)
                     # print(dict_all_values_in_a_file)
@@ -122,41 +119,26 @@ list_order_of_SAMPA=order_of_SAMPA.split(",")
 list_order_of_FPGA=order_of_FPGA.split(",")
 
 
-for time in dict_all_values[0]:
-    str_off=""+str(dict_all_values[0][time])
-    print(time)
+try:
+    with open("temperature.csv", mode='w', encoding="utf-8") as csvwritefile:
 
-# print(dict_all_values[0])
-# print(dict_all_values[82])
+        header="Time sec,"
+        for SAMPA in list_order_of_SAMPA:
+            header += SAMPA + "-T2°C,"
+        for FPGA in list_order_of_FPGA:
+            header += FPGA + "-T1°C,"
+        print(header)
+        csvwritefile.write(header+"\n")
+        for time in dict_all_values:
+            str_of_values = ""
+            str_of_values+=str(time)+","
+            for SAMPA in list_order_of_SAMPA:
+                str_of_values+=str(dict_all_values[time][SAMPA]["T2°C"])+","
+            print(str_of_values)
+            for FPGA in list_order_of_FPGA:
+                str_of_values += str(dict_all_values[time][FPGA]["T1°C"])+","
+            print(str_of_values)
+            csvwritefile.write(str_of_values + "\n")
 
-# try:
-#     with open(csvfilename, mode='r', encoding="utf-8") as csvreadfile:
-#         with open("temperature.csv", mode='w', encoding="utf-8") as csvwritefile:
-#             csv_reader = csv.reader(csvreadfile, delimiter=',')
-#             line_count = 0
-#             for row in csv_reader:
-#                 if line_count == 0:
-#                     val = 1
-#                     strrow = 'Time,'
-#                     for val in range(62):
-#                         strrow += row[4 + 9 * val] + '-T1,'+row[4 + 9 * val]+'-T2,'
-#                     print(strrow)
-#                     csvwritefile.write(strrow + '\n')
-#                     strrow = str(row[3]) + ','
-#                     for val in range(62):
-#                         # print(f'{row[10 + 9 * val]}<->{row[11 + 9 * val]}')
-#                         strrow += row[11 + 9 * val] + ','
-#                         strrow += row[12 + 9 * val] + ','
-#                     print(strrow)
-#                     csvwritefile.write(strrow + '\n')
-#                     line_count += 1
-#                 else:
-#                     strrow = str(row[3])+','
-#                     for val in range(62):
-#                         strrow += row[11 + 9 * val] + ','
-#                         strrow += row[12 + 9 * val] + ','
-#                     print(strrow)
-#                     csvwritefile.write(strrow + '\n')
-#                     line_count += 1
-# except IOError:
-#     print("An IOError has occurred!")
+except IOError:
+    print("[\"temperature.csv\"]An IOError has occurred!")
